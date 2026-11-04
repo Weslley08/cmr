@@ -1,90 +1,115 @@
 # CMR — Claude Model Router
 
-[![CI](https://github.com/Weslley08/cmr/actions/workflows/ci.yml/badge.svg)](https://github.com/Weslley08/cmr/actions/workflows/ci.yml)
-[![MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+<p align="center"><strong>Local, opt-in model routing for Claude Code.</strong><br>Select Haiku, Sonnet, or Opus without an extra classifier API call.</p>
 
-**Experimental v0.1.0** — model selection for Claude Code, with a lightweight cross-platform CLI and a native **Mod**. CMR does not need the Anthropic API key, send prompts to a third-party classifier or change RTK settings.
+<p align="center">
+<a href="https://github.com/Weslley08/cmr/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Weslley08/cmr/actions/workflows/ci.yml/badge.svg"></a>
+<a href="https://github.com/Weslley08/cmr/releases"><img alt="Release" src="https://img.shields.io/github/v/release/Weslley08/cmr?include_prereleases"></a>
+<a href="LICENSE"><img alt="License MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+</p>
 
-> **Status:** Code, tests and GitHub Actions are in this repository. Real routing in Claude Code 2.1.318 and the VS Code extension must be validated before calling this a stable release. WinGet and Homebrew listings are **not published yet**.
+<p align="center"><a href="README.md">English</a> · <a href="README_pt.md">Português</a> · <a href="INSTALL.md">Installation</a> · <a href="docs/guide/getting-started/quick-start.md">Quick Start</a> · <a href="docs/contributing/ARCHITECTURE.md">Architecture</a></p>
 
-## Features
+> **Experimental 0.1.0:** CI and local tests exist, but routing in a real Claude Code / VS Code session **has not yet been validated**. There is no published WinGet, Homebrew, or GitHub binary release.
 
-- Rule-based selection between **Haiku**, **Sonnet** and **Opus** via Claude Code's documented `turn.step` event.
-- Modes: `economy`, `balanced` (default), and `quality`.
-- **Off by default**. Run `/cmr auto` to enable. `/cmr off` disables routing.
-- Explicit model overrides with `/cmr force sonnet` (or haiku/opus/none).
-- Preserves subagent model choices, Claude Code permissions and existing **RTK** hooks.
-- No classifier API, token, telemetry collection, background agent, or shell interception.
+## What CMR does
 
-The rule engine is heuristic. It **does not currently** detect a failed build and automatically escalate the model, guarantee superior quality or prove subscription quota savings. Session counters are approximate.
+CMR is a Claude Code Mod supported by a native Rust management CLI. It classifies the user's latest prompt locally and attempts to select a model through the Claude Code runtime. It starts **off**; run `/cmr auto` to enable.
 
-## Install directly in the VS Code extension (no CLI required)
+| Request | Balanced profile |
+|---|---|
+| Scoped, read-only request | Haiku |
+| Routine implementation and tests | Sonnet |
+| Architecture or large refactor | Opus |
+| Critical security or production issue | Opus |
+| Explicit model selection | Requested model |
 
-1. In the **official Claude Code** panel, open `/plugin` (some versions expose `/plugins`).
-2. Add marketplace: `Weslley08/cmr`.
-3. Install `model-router@weslley08-cmr` for **user** scope.
-4. Restart/reload the Claude Code session.
-5. Run `/cmr status`, `/cmr mode balanced`, then `/cmr auto`.
+The initial heuristics can be wrong. There is **no proven savings claim**, automatic retry escalation, or persistent tracking yet. Existing permission checks and subagent choices remain the Claude Code runtime's responsibility.
 
-Alternatively, if the Claude Code CLI is available:
+## How it works
 
-```sh
-claude plugin marketplace add Weslley08/cmr
-claude plugin install model-router@weslley08-cmr
+```mermaid
+flowchart TD
+  A[Claude Code: VS Code or CLI] --> B[CMR Mod]
+  B --> C{Model decision}
+  C --> D[Haiku]
+  C --> E[Sonnet]
+  C --> F[Opus]
+  D --> G[Claude Code permissions and tools]
+  E --> G
+  F --> G
+  H[Optional RTK output hook] -.-> G
 ```
 
-The GitHub repository itself is the Claude Code marketplace. A Rust executable is **not required** to install the Mod.
+CMR and [RTK](https://github.com/rtk-ai/rtk) are **independent**. RTK compacts Bash command output; CMR attempts to choose the model. Neither needs the other.
 
-## CMR CLI
+## Installation
 
-The optional Rust CLI helps install and diagnose CMR; the model routing itself executes in the Claude Code Mod. After a release is published, use the matching binary from [GitHub Releases](https://github.com/Weslley08/cmr/releases).
+The eventual RTK-style one-time installer will be:
 
-For developers with Rust installed:
-
-```sh
-cargo build --release
-cargo run -- init -g
-cargo run -- doctor
-cargo run -- status
+```powershell
+# Planned only — WinGet listing not published yet
+winget install Weslley08.CMR
+cmr init -g
+cmr doctor
 ```
 
-`cmr init -g` uses the **official Claude Code plugin commands** and user scope. If `claude` is missing, it prints VS Code installation instructions rather than silently editing your Claude configuration.
+### Preview using the official Claude Code extension
 
-### Distribution roadmap
+In the Claude Code plugin manager, add `Weslley08/cmr` as a **Claude Code plugin marketplace source**, then install `model-router@weslley08-cmr` at user scope. This marketplace is only a plugin catalog, **not the VS Code Marketplace and not WinGet**.
 
-| OS | Planned channel | State |
-|---|---|---|
-| Windows x64 | GitHub Releases + WinGet `Weslley08.CMR` | CI/build configured; WinGet approval pending first release |
-| macOS Intel/Apple Silicon | GitHub Releases + Homebrew tap | CI/build configured; tap not published |
-| Linux x64/ARM64 | GitHub Releases `.tar.gz` | CI/build configured; install script planned |
+Restart the Claude Code session, then:
 
-A WinGet package cannot be installed by `winget install Weslley08.CMR` until the corresponding manifest has been accepted into the community index. Do **not** treat that command as currently available.
-
-## Commands inside Claude Code
-
-```
+```text
 /cmr status
-/cmr mode economy
 /cmr mode balanced
-/cmr mode quality
 /cmr auto
-/cmr force opus
-/cmr force none
 /cmr stats
 /cmr off
 ```
 
-Routing decisions are per user prompt and sticky across the model requests for that prompt. CMR skips subagents. A more advanced escalation engine is a proposed future release.
+Alternatively, if the standalone Claude Code CLI is available:
 
-## RTK compatibility
+```bash
+claude plugin marketplace add Weslley08/cmr
+claude plugin install model-router@weslley08-cmr
+```
 
-RTK is **optional**, independent of the CMR Mod. RTK's `PreToolUse` Bash hook compacts command output; CMR's `turn.step` hook chooses a model. Neither component installs, uninstalls or modifies the other.
+Read [INSTALL.md](INSTALL.md) for the full procedure and safety notes.
+
+## Repository structure
+
+Organized using conventions inspired by RTK, with CMR-specific functionality isolated:
+
+```text
+cmr/
+├── src/
+│   ├── main.rs
+│   ├── core/                 # Parsing and OS integration
+│   ├── cmds/                 # CLI commands
+│   └── analytics/            # Metrics guidance
+├── plugins/model-router/     # Claude Code Mod + tests
+├── .claude-plugin/           # Optional Claude Code plugin catalog
+├── hooks/                    # Integration documentation
+├── tests/                    # Rust CLI integration tests
+├── docs/guide/               # User guides
+├── docs/contributing/        # Architecture
+├── examples/
+├── scripts/
+├── packaging/
+├── .github/workflows/
+├── Cargo.toml
+├── Cargo.lock
+├── INSTALL.md
+├── CHANGELOG.md
+└── LICENSE
+```
 
 ## Development
 
-Requirements: stable Rust toolchain; Node.js 20+.
+Rust stable and Node.js 20+:
 
-```sh
+```bash
 cargo fmt --all -- --check
 cargo clippy --all-targets -- -D warnings
 cargo test --all-targets
@@ -92,24 +117,6 @@ node --test plugins/model-router/tests/*.test.js
 node scripts/check-marketplace.mjs
 ```
 
-Run the authoritative Claude Code validation locally with its CLI, if installed:
+These tests are **not** proof of working live model selection. See [Architecture](docs/contributing/ARCHITECTURE.md), [Distribution](docs/DISTRIBUTION.md), [Contributing](CONTRIBUTING.md), and [Security](SECURITY.md).
 
-```sh
-claude plugin validate .
-claude plugin validate plugins/model-router
-claude plugin test plugins/model-router
-```
-
-Unit tests test the local routing logic, **not** a live Claude Code subscription or model invocation.
-
-## Releases and package managers
-
-Tag releases as `vX.Y.Z` after updating `Cargo.toml` and the Mod's `plugin.json`. GitHub Actions builds native archives and generates `SHA256SUMS` after its package jobs succeed. See [Distribution](docs/DISTRIBUTION.md).
-
-## Security
-
-Routing is opt-in; no outgoing requests are made from the Mod. It does not bypass tool permissions, change existing hooks or copy prompts to external services. See [SECURITY.md](SECURITY.md) before installing third-party mods.
-
-## License
-
-[MIT](LICENSE).
+**License:** [MIT](LICENSE).
