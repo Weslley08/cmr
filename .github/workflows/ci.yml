@@ -31,6 +31,23 @@ jobs:
       - name: Build
         run: cargo build --release
 
+  mod:
+    name: Mod / policy, hooks and manifests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax
+        run: |
+          node --check plugins/model-router/hooks/register.mjs
+          node --check plugins/model-router/hooks/policy.mjs
+      - name: Mod tests
+        run: node --test plugins/model-router/tests/*.test.mjs
+      - name: Check marketplace layout
+        run: node scripts/check-mod.mjs
+
   native-platforms:
     name: Native / ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
