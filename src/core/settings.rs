@@ -21,26 +21,50 @@ pub fn has_cmr(root: &Value) -> bool {
     root.get("hooks")
         .and_then(|h| h.get("UserPromptSubmit"))
         .and_then(Value::as_array)
-        .is_some_and(|items| items.iter().any(|item| {
-            item.get("hooks").and_then(Value::as_array)
-                .is_some_and(|hooks| hooks.iter().any(|hook| hook.get("command").and_then(Value::as_str) == Some(COMMAND)))
-        }))
+        .is_some_and(|items| {
+            items.iter().any(|item| {
+                item.get("hooks")
+                    .and_then(Value::as_array)
+                    .is_some_and(|hooks| {
+                        hooks.iter().any(|hook| {
+                            hook.get("command").and_then(Value::as_str) == Some(COMMAND)
+                        })
+                    })
+            })
+        })
 }
 
 pub fn install(root: &mut Value) -> Result<bool, String> {
-    if has_cmr(root) { return Ok(false); }
-    let object = root.as_object_mut().ok_or("Settings root is not an object")?;
-    let hooks = object.entry("hooks").or_insert_with(|| json!({}))
-        .as_object_mut().ok_or("Existing 'hooks' is not an object")?;
-    let array = hooks.entry("UserPromptSubmit").or_insert_with(|| json!([]))
-        .as_array_mut().ok_or("Existing 'UserPromptSubmit' is not an array")?;
+    if has_cmr(root) {
+        return Ok(false);
+    }
+    let object = root
+        .as_object_mut()
+        .ok_or("Settings root is not an object")?;
+    let hooks = object
+        .entry("hooks")
+        .or_insert_with(|| json!({}))
+        .as_object_mut()
+        .ok_or("Existing 'hooks' is not an object")?;
+    let array = hooks
+        .entry("UserPromptSubmit")
+        .or_insert_with(|| json!([]))
+        .as_array_mut()
+        .ok_or("Existing 'UserPromptSubmit' is not an array")?;
     array.push(json!({ "hooks": [{ "type": "command", "command": COMMAND, "timeout": 10 }] }));
     Ok(true)
 }
 
 pub fn uninstall(root: &mut Value) -> Result<bool, String> {
-    let Some(hooks) = root.get_mut("hooks").and_then(Value::as_object_mut) else { return Ok(false); };
-    let Some(items) = hooks.get_mut("UserPromptSubmit").and_then(Value::as_array_mut) else { return Ok(false); };
+    let Some(hooks) = root.get_mut("hooks").and_then(Value::as_object_mut) else {
+        return Ok(false);
+    };
+    let Some(items) = hooks
+        .get_mut("UserPromptSubmit")
+        .and_then(Value::as_array_mut)
+    else {
+        return Ok(false);
+    };
     let before = items.len();
     // Remove the CMR command only, keeping other hooks even in the same entry.
     for item in items.iter_mut() {
@@ -48,7 +72,11 @@ pub fn uninstall(root: &mut Value) -> Result<bool, String> {
             commands.retain(|v| v.get("command").and_then(Value::as_str) != Some(COMMAND));
         }
     }
-    items.retain(|item| item.get("hooks").and_then(Value::as_array).is_none_or(|a| !a.is_empty()));
+    items.retain(|item| {
+        item.get("hooks")
+            .and_then(Value::as_array)
+            .is_none_or(|a| !a.is_empty())
+    });
     let removed = before != items.len() || !has_cmr(root);
     Ok(removed && before > 0)
 }
@@ -65,7 +93,8 @@ pub fn save(path: &Path, root: &Value) -> Result<(), String> {
             fs::copy(path, &backup).map_err(|e| format!("Cannot back up settings: {e}"))?;
         }
     }
-    fs::write(path, [bytes, vec![b'\n']].concat()).map_err(|e| format!("Cannot save {}: {e}", path.display()))
+    fs::write(path, [bytes, vec![b'\n']].concat())
+        .map_err(|e| format!("Cannot save {}: {e}", path.display()))
 }
 
 #[cfg(test)]
@@ -77,9 +106,15 @@ mod tests {
         assert!(install(&mut root).unwrap());
         assert!(!install(&mut root).unwrap());
         assert!(has_cmr(&root));
-        assert_eq!(root["hooks"]["PreToolUse"][0]["hooks"][0]["command"], "rtk hook claude");
+        assert_eq!(
+            root["hooks"]["PreToolUse"][0]["hooks"][0]["command"],
+            "rtk hook claude"
+        );
         assert!(uninstall(&mut root).unwrap());
         assert!(!has_cmr(&root));
-        assert_eq!(root["hooks"]["PreToolUse"][0]["hooks"][0]["command"], "rtk hook claude");
+        assert_eq!(
+            root["hooks"]["PreToolUse"][0]["hooks"][0]["command"],
+            "rtk hook claude"
+        );
     }
 }

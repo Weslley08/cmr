@@ -24,20 +24,32 @@ pub fn parse(args: &[String]) -> Result<Action, String> {
         "status" if rest.is_empty() => Ok(Action::Status),
         "stats" if rest.is_empty() => Ok(Action::Stats),
         "init" | "uninstall" => {
-            if rest.iter().any(|s| s != "-g" && s != "--global" && s != "--dry-run") {
+            if rest
+                .iter()
+                .any(|s| s != "-g" && s != "--global" && s != "--dry-run")
+            {
                 return Err(format!("Unexpected arguments: {}", rest.join(" ")));
             }
             let dry_run = rest.iter().any(|s| s == "--dry-run");
-            if command == "init" { Ok(Action::Init { dry_run }) }
-            else { Ok(Action::Uninstall { dry_run }) }
+            if command == "init" {
+                Ok(Action::Init { dry_run })
+            } else {
+                Ok(Action::Uninstall { dry_run })
+            }
         }
         "recommend" | "launch" if !rest.is_empty() => {
             let prompt = rest.join(" ");
-            if command == "recommend" { Ok(Action::Recommend(prompt)) }
-            else { Ok(Action::Launch(prompt)) }
+            if command == "recommend" {
+                Ok(Action::Recommend(prompt))
+            } else {
+                Ok(Action::Launch(prompt))
+            }
         }
         "hook" if rest == ["prompt"] => Ok(Action::HookPrompt),
-        _ => Err(format!("Unsupported command or arguments: {}", args.join(" "))),
+        _ => Err(format!(
+            "Unsupported command or arguments: {}",
+            args.join(" ")
+        )),
     }
 }
 
@@ -47,9 +59,18 @@ mod tests {
     #[test]
     fn parses_commands() {
         assert_eq!(parse(&[]), Ok(Action::Help));
-        assert_eq!(parse(&["init".into(), "-g".into(), "--dry-run".into()]), Ok(Action::Init { dry_run: true }));
-        assert_eq!(parse(&["hook".into(), "prompt".into()]), Ok(Action::HookPrompt));
-        assert_eq!(parse(&["recommend".into(), "hello".into()]), Ok(Action::Recommend("hello".into())));
+        assert_eq!(
+            parse(&["init".into(), "-g".into(), "--dry-run".into()]),
+            Ok(Action::Init { dry_run: true })
+        );
+        assert_eq!(
+            parse(&["hook".into(), "prompt".into()]),
+            Ok(Action::HookPrompt)
+        );
+        assert_eq!(
+            parse(&["recommend".into(), "hello".into()]),
+            Ok(Action::Recommend("hello".into()))
+        );
         assert!(parse(&["init".into(), "--unsafe".into()]).is_err());
     }
 }

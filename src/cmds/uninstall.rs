@@ -17,6 +17,9 @@ pub fn execute(dry_run: bool) -> u8 {
         println!("CMR hook removed. RTK and unrelated hooks preserved.");
         Ok(())
     })();
-    if let Err(e) = result { eprintln!("{e}"); return 1; }
+    if let Err(e) = result {
+        eprintln!("{e}");
+        return 1;
+    }
     0
 }

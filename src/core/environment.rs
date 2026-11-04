@@ -8,11 +8,14 @@ pub fn available(command: &str) -> bool {
 }
 
 pub fn home_dir() -> Option<PathBuf> {
-    env::var_os("USERPROFILE").or_else(|| env::var_os("HOME")).map(PathBuf::from)
+    env::var_os("USERPROFILE")
+        .or_else(|| env::var_os("HOME"))
+        .map(PathBuf::from)
 }
 
 pub fn settings_path() -> Result<PathBuf, String> {
-    home_dir().map(|home| home.join(".claude").join("settings.json"))
+    home_dir()
+        .map(|home| home.join(".claude").join("settings.json"))
         .ok_or_else(|| "USERPROFILE or HOME is required to find Claude Code settings".into())
 }
 

@@ -32,7 +32,10 @@ pub fn execute(action: Action) -> u8 {
         Action::Uninstall { dry_run } => return uninstall::execute(dry_run),
         Action::Recommend(prompt) => {
             let selection = crate::core::routing::recommend(&prompt);
-            println!("{} — {} (recommendation only; current session unchanged)", selection.model, selection.reason);
+            println!(
+                "{} — {} (recommendation only; current session unchanged)",
+                selection.model, selection.reason
+            );
         }
         Action::Launch(prompt) => return launch::execute(&prompt),
         Action::HookPrompt => return hook::execute(),

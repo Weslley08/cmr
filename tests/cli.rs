@@ -12,7 +12,10 @@ fn command(args: &[&str]) -> std::process::Output {
 fn help_version_and_recommendation() {
     let version = command(&["version"]);
     assert!(version.status.success());
-    assert_eq!(String::from_utf8_lossy(&version.stdout).trim(), env!("CARGO_PKG_VERSION"));
+    assert_eq!(
+        String::from_utf8_lossy(&version.stdout).trim(),
+        env!("CARGO_PKG_VERSION")
+    );
     assert!(String::from_utf8_lossy(&command(&["help"]).stdout).contains("init"));
     let output = command(&["recommend", "Liste arquivos do src"]);
     assert!(output.status.success());
@@ -35,7 +38,10 @@ fn hook_emits_advice_without_model_switch_field() {
     let parsed: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
     assert!(parsed["systemMessage"].as_str().unwrap().contains("opus"));
     assert!(parsed.get("model").is_none());
-    assert!(parsed["systemMessage"].as_str().unwrap().contains("advisory only"));
+    assert!(parsed["systemMessage"]
+        .as_str()
+        .unwrap()
+        .contains("advisory only"));
 }
 
 #[test]
