@@ -1,5 +1,5 @@
 # CMR guide
 
-Start with [Installation](getting-started/installation.md), [Quick Start](getting-started/quick-start.md), [Configuration](getting-started/configuration.md), or [Troubleshooting](getting-started/troubleshooting.md).
+[Installation](getting-started/installation.md) · [Quick Start](getting-started/quick-start.md) · [Configuration](getting-started/configuration.md) · [Troubleshooting](getting-started/troubleshooting.md) · [Architecture](../contributing/ARCHITECTURE.md)
 
-For implementation details, see [Architecture](../contributing/ARCHITECTURE.md) and [Distribution](../DISTRIBUTION.md).
+Native Rust CLI and hooks only; no plugin or marketplace.

@@ -1,12 +1,10 @@
-# Model routing examples
+# Examples
 
-Examples of **heuristic predictions** for the balanced profile, not measured real usage:
+```sh
+cmr recommend "Liste arquivos do src"       # Haiku recommendation
+cmr recommend "Implemente endpoint e testes" # Sonnet recommendation
+cmr recommend "Redesenhe a arquitetura"     # Opus recommendation
+cmr launch "Crie testes de regressão"       # Effective CLI session model
+```
 
-| Prompt | Expected model |
-|---|---|
-| Liste os arquivos de src | Haiku |
-| Implemente testes no endpoint | Sonnet |
-| Refatore a arquitetura distribuída | Opus |
-| Investigue um deadlock em produção | Opus |
-
-Use `/cmr mode balanced` and `/cmr auto` inside Claude Code, then inspect actual model selection. Report mismatches as issues.
+A recommendation does not change the current model. Native hooks run before RTK's Bash hook, when RTK is installed.

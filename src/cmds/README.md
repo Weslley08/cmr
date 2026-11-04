@@ -1,5 +1,3 @@
-# CLI commands
+# Native commands
 
-`init`, `doctor`, `status` and `uninstall` are kept in separate modules.
-
-CLI installation delegates to official `claude plugin` commands. There is no raw edit of Claude Code's `settings.json`, and no RTK hook is touched.
+`init`, `uninstall`, `hook`, `recommend`, `launch`, `doctor`, `status` and `stats`. All implemented in Rust. No Claude Code marketplace or plugin is involved; `launch` sets a model only at CLI session startup.

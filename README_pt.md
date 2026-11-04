@@ -1,52 +1,46 @@
 # CMR — Claude Model Router
 
-<p align="center"><strong>Roteamento inteligente de modelos para Claude Code, com regras locais e ativação opcional.</strong></p>
+**Um executável nativo em Rust, sem plugin ou marketplace.** Funciona com hooks locais do Claude Code no terminal e na extensão oficial do VS Code.
 
 [![CI](https://github.com/Weslley08/cmr/actions/workflows/ci.yml/badge.svg)](https://github.com/Weslley08/cmr/actions/workflows/ci.yml) [![MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-[English](README.md) · [Instalação](INSTALL.md) · [Guia rápido](docs/guide/getting-started/quick-start.md) · [Arquitetura](docs/contributing/ARCHITECTURE.md)
+[English](README.md) · [Instalação](INSTALL.md) · [Arquitetura](docs/contributing/ARCHITECTURE.md)
 
-> **Versão 0.1.0 experimental.** Os testes locais e CI foram preparados, mas ainda falta comprovar a troca real de modelos no VS Code. **WinGet e Homebrew ainda não distribuem o CMR.**
+## CMR + RTK
 
-## Objetivo
+- **Primeiro o CMR:** o hook `UserPromptSubmit` recebe a tarefa e recomenda Haiku, Sonnet ou Opus.
+- **Depois o Claude Code:** processa a solicitação com o modelo efetivamente selecionado na interface.
+- **Se executar Bash, entra o RTK:** o hook `PreToolUse` intercepta os comandos compatíveis e compacta suas saídas.
 
-O CMR usa um componente de extensão do **Claude Code** para selecionar **Haiku, Sonnet ou Opus**, conforme a complexidade da tarefa. A CLI em Rust gerencia instalação e diagnóstico. O roteamento inicia **desativado**, até executar `/cmr auto`.
+Ambos funcionam independentemente, sem sobrescrever os hooks existentes.
 
-| Tipo de tarefa | Modelo no perfil equilibrado |
-|---|---|
-| Consulta simples, localizada | Haiku |
-| Implementação e testes comuns | Sonnet |
-| Arquitetura e alterações amplas | Opus |
-| Segurança ou incidente de produção | Opus |
+### Limitação importante
 
-A classificação utiliza heurísticas locais. Economia de tokens, escalonamento automático em caso de erro e funcionamento no ambiente real ainda não foram demonstrados.
+**Os hooks externos do Claude Code não podem forçar uma troca automática de modelo por prompt.** O CMR indica qual modelo recomenda, mas isso não garante que ele foi utilizado. Para uma troca efetiva, use o seletor de modelos do VS Code, `/model` ou o comando `cmr launch`, que executa `claude --model ...` ao iniciar uma nova sessão no terminal.
+
+Não utilizaremos proxy, API privada, alteração de credenciais nem integração obrigatória com plugin.
+
+## Comandos
+
+```powershell
+cmr init -g --dry-run
+cmr init -g
+cmr doctor
+cmr status
+cmr recommend "Liste arquivos do src"
+cmr launch "Implemente um endpoint com testes"
+cmr uninstall -g
+```
+
+O `cmr init -g` só adiciona `cmr hook prompt` ao evento `UserPromptSubmit` do `~/.claude/settings.json`. Não altera o `rtk hook claude` em `PreToolUse`.
 
 ## Instalação
 
-Depois que o pacote for publicado, queremos oferecer:
+**Versão experimental 0.1.0**: ainda não há pacote oficial no WinGet/Homebrew. Até a primeira publicação, é necessário compilar a CLI em Rust ou usar os artefatos de CI para testes. O plano de distribuição é:
 
 ```powershell
-winget install Weslley08.CMR
+winget install Weslley08.CMR  # Planejado, ainda não disponível
 cmr init -g
-cmr doctor
 ```
 
-**Esses comandos ainda não estão disponíveis no WinGet.**
-
-Para testar o Mod agora: no gerenciador de plugins do **Claude Code**, adicione a fonte `Weslley08/cmr` e instale `model-router@weslley08-cmr` no escopo de usuário. O chamado *marketplace* é apenas um catálogo de plugins do Claude Code — não é o Marketplace do VS Code.
-
-```text
-/cmr status
-/cmr mode balanced
-/cmr auto
-/cmr stats
-/cmr off
-```
-
-Veja [INSTALL.md](INSTALL.md) para mais opções. A [documentação principal em inglês](README.md) apresenta a estrutura completa.
-
-## RTK e CMR
-
-**RTK** compacta saídas dos comandos; **CMR** seleciona o modelo. São independentes e podem funcionar juntos. CMR não modifica os hooks do RTK nem suas permissões.
-
-Código sob licença [MIT](LICENSE).
+Confira [INSTALL.md](INSTALL.md). Licença [MIT](LICENSE).

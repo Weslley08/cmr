@@ -1,36 +1,17 @@
-# Distribution: GitHub Releases, WinGet and Homebrew
+# Distribution plan
 
-The GitHub repository already exposes the **Mod marketplace**, which works without the Rust CLI.
+CMR is a standalone Rust executable. The repository configures Windows x64, Linux x64/ARM64 and macOS Intel/Apple Silicon native release builds and checksums.
 
-## GitHub Actions releases
+## Tagging and GitHub Releases
 
-1. Merge the version changes after CI passes.
-2. Bump `Cargo.toml` and `plugins/model-router/.claude-plugin/plugin.json`.
-3. Push an annotated tag `vX.Y.Z`.
-4. `release.yml` builds Windows x64, Linux x64/ARM64, and macOS x64/ARM64 native CLI binaries.
-5. The publishing job creates a GitHub Release and a `SHA256SUMS` file.
-
-Publishing is deliberately gated by a tag and successful build jobs. Nothing here means a release already exists.
+After all tests pass, tag `vX.Y.Z` matching Cargo.toml. The release pipeline builds native archives and publishes assets with SHA256SUMS. A release has not yet been published.
 
 ## WinGet
 
-After the first GitHub release, obtain the actual SHA256 of `cmr-x86_64-pc-windows-msvc.zip` from `SHA256SUMS`. On Windows:
-
-```powershell
-./scripts/generate-winget.ps1 -Version "0.1.0" -Sha256 "<ACTUAL_64_HEX_SHA256>"
-winget validate --manifest "./packaging/winget/Weslley08.CMR/0.1.0"
-```
-
-Submit the three generated YAML manifests to `microsoft/winget-pkgs`. **Approval is external**. The ID `Weslley08.CMR` is proposed and not registered merely by this repository.
+After a real tagged release, run `scripts/generate-winget.ps1 -Version X.Y.Z -Sha256 <ACTUAL_RELEASE_SHA256>` and validate/submit the manifest to `microsoft/winget-pkgs`. The desired package ID `Weslley08.CMR` is **not registered** yet.
 
 ## Homebrew
 
-After a release, use the release archives and verified SHA256s to populate a formula in your future `homebrew-tap` repository. `packaging/homebrew/README.md` documents a minimal tap formula. The tap does not yet exist, and `brew install weslley08/tap/cmr` is not currently available.
+Publish a formula in a separate `Weslley08/homebrew-tap` repository using verified SHA256s from real GitHub release archives. The tap does **not** exist yet.
 
-## Supply-chain and release discipline
-
-- GitHub Actions upload/download artifacts are the only inputs to the release step.
-- Release SHA256SUMS is generated from those exact artifacts.
-- Workflow permissions are read-only except for the release creation job.
-- A WinGet manifest must contain the genuine artifact checksum; never use placeholders for publication.
-- Signed builds, SBOM and formal provenance are future enhancements; not currently claimed.
+No Mod, plugin marketplace or VS Code extension dependency.

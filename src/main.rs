@@ -1,11 +1,9 @@
-//! Entry point for the cross-platform CMR CLI.
-//! Model routing itself runs inside the Claude Code Mod, not this process.
+//! Standalone Rust executable. No Claude Code plugin, Mod or marketplace.
 mod analytics;
 mod cmds;
 mod core;
 
-use std::env;
-use std::process::ExitCode;
+use std::{env, process::ExitCode};
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().skip(1).collect();

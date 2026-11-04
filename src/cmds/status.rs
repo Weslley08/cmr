@@ -1,12 +1,14 @@
-use crate::core::environment::{available, print_vscode_instructions, run};
+use crate::core::{environment, settings};
 
 pub fn execute() -> u8 {
-    if !available("claude") {
-        print_vscode_instructions();
-        return 2;
-    }
-    if !run("claude", &["plugin", "list"]) {
-        return 1;
-    }
+    let result = (|| -> Result<(), String> {
+        let path = environment::settings_path()?;
+        let root = settings::read(&path)?;
+        println!("CMR native hook: {}", if settings::has_cmr(&root) { "installed" } else { "not installed" });
+        println!("Settings: {}", path.display());
+        println!("RTK hook is independent; CMR runs on UserPromptSubmit, RTK on PreToolUse.");
+        Ok(())
+    })();
+    if let Err(error) = result { eprintln!("{error}"); return 1; }
     0
 }

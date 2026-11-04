@@ -1,50 +1,62 @@
-# CMR installation guide
+# CMR installation
 
-> **Preview only:** No WinGet/Homebrew package or signed CLI release is published yet. The plugin's live runtime compatibility remains unverified.
+The CMR project is a **native Rust CLI**, not a Claude Code plugin. You do not need a marketplace.
 
-## VS Code — official Claude Code extension
+## Build from source (today)
 
-1. In the Claude Code extension, open its plugin manager (the command may be `/plugin` or `/plugins`, depending on the version).
-2. Add `Weslley08/cmr` as a Claude Code plugin **marketplace source**.
-3. Install `model-router@weslley08-cmr` for your user.
-4. Restart the session and run `/cmr status`, `/cmr mode balanced`, and `/cmr auto`.
-5. If anything fails, disable/uninstall the plugin. The Mod does not uninstall RTK.
-
-If you have standalone Claude Code CLI:
-
-```sh
-claude plugin marketplace add Weslley08/cmr
-claude plugin install model-router@weslley08-cmr
-```
-
-## Build the optional Rust CLI
-
-Install Rust and Git:
+Install Rust stable and Git:
 
 ```sh
 git clone https://github.com/Weslley08/cmr.git
 cd cmr
 cargo test --all-targets
 cargo build --release
-./target/release/cmr doctor
 ```
 
-Windows PowerShell uses `./target/release/cmr.exe doctor`. The CLI invokes official `claude plugin` commands; if `claude` is unavailable, it provides VS Code instructions instead of touching settings.
+Move `target/release/cmr` (or Windows `target/release/cmr.exe`) into an existing PATH directory, or add its containing directory to your user PATH. Restart terminals and VS Code after changing PATH.
 
-## Future native install channels
-
-- Windows: `winget install Weslley08.CMR` **only after** Microsoft accepts the manifest.
-- macOS/Linux: `brew install weslley08/tap/cmr` **only after** a Homebrew tap exists and is published.
-- GitHub Releases: downloadable verified CLI archives **after** a tag and successful build/release workflow.
-
-None of these should be advertised as available today.
-
-## Remove the Mod
-
-Uninstall `model-router@weslley08-cmr` using the plugin manager, or:
+## Set up native Claude Code hooks
 
 ```sh
-claude plugin uninstall model-router@weslley08-cmr
+cmr init -g --dry-run
+cmr init -g
+cmr status
+cmr doctor
 ```
 
-CMR does not modify RTK's `PreToolUse` hook.
+The installer edits only `~/.claude/settings.json`, retaining all existing hooks. It backs up the original settings as `settings.json.cmr.bak` before its first modification, and will not overwrite the first backup on subsequent runs. The added entry is:
+
+```json
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": "cmr hook prompt", "timeout": 10 }
+        ]
+      }
+    ]
+  }
+}
+```
+
+This is **merged**, not used to replace existing settings. RTK's separate `PreToolUse` Bash hook remains untouched.
+
+## How each integration behaves
+
+- **Claude Code CLI**: `cmr launch "prompt"` chooses a model for a **new** session and runs `claude --model <alias> "prompt"`, if the CLI is installed.
+- **VS Code Claude Code extension**: native `UserPromptSubmit` hook runs, displaying an advisory model recommendation. There is no documented native hook that forces a per-prompt switch. Use the extension's model selector or `/model` for actual changes.
+- **RTK**: still runs independently before compatible Bash tool calls.
+
+## Planned package channels
+
+WinGet `Weslley08.CMR`, Homebrew `weslley08/tap/cmr` and signed release assets are **planned**, not yet available.
+
+## Uninstall
+
+```sh
+cmr uninstall -g --dry-run
+cmr uninstall -g
+```
+
+This removes only the CMR hook. It does not remove RTK or Claude Code settings.

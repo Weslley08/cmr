@@ -2,13 +2,21 @@
 name = "cmr"
 version = "0.1.0"
 edition = "2021"
-description = "Cross-platform companion CLI for the Claude Model Router mod"
+description = "Native Claude Model Router: cross-platform hooks and CLI session selection"
 license = "MIT"
 repository = "https://github.com/Weslley08/cmr"
 readme = "README.md"
-keywords = ["claude-code", "model-router", "cli"]
+keywords = ["claude-code", "models", "hooks", "cli"]
 categories = ["command-line-utilities"]
 
 [[bin]]
 name = "cmr"
 path = "src/main.rs"
+
+[dependencies]
+serde_json = "1"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true

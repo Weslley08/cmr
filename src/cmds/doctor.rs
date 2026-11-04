@@ -1,34 +1,15 @@
-use crate::core::environment::{available, home_dir};
+use crate::core::{environment, settings};
 
 pub fn execute() {
-    println!("CMR CLI: {}", env!("CARGO_PKG_VERSION"));
-    println!(
-        "Claude Code CLI: {}",
-        if available("claude") {
-            "found"
-        } else {
-            "not found (VS Code extension works independently)"
+    println!("CMR {}", env!("CARGO_PKG_VERSION"));
+    println!("Claude Code CLI in PATH: {}", environment::available("claude"));
+    println!("RTK (optional) in PATH: {}", environment::available("rtk"));
+    if let Ok(path) = environment::settings_path() {
+        match settings::read(&path) {
+            Ok(root) => println!("CMR hook installed: {}", settings::has_cmr(&root)),
+            Err(error) => eprintln!("Settings warning: {error}"),
         }
-    );
-    println!(
-        "RTK (optional): {}",
-        if available("rtk") {
-            "found"
-        } else {
-            "not found"
-        }
-    );
-    if let Some(home) = home_dir() {
-        let settings = home.join(".claude").join("settings.json");
-        println!(
-            "Claude settings: {} ({})",
-            settings.display(),
-            if settings.exists() {
-                "exists"
-            } else {
-                "not found"
-            }
-        );
     }
-    println!("Availability check only, not proof of live model routing.");
+    println!("Native hook coverage: Claude Code CLI and local VS Code extension.");
+    println!("Current limitation: native hooks cannot select the model per prompt.");
 }

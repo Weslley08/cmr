@@ -1,12 +1,13 @@
-# Contributing to CMR
+# Contributing
 
-Thanks for contributing! CMR aims to remain lightweight, cross-platform, safe and transparent.
+CMR is a native Rust CLI and Claude Code hook binary. **Do not add a plugin, marketplace, unsupported API proxy or credential interception.**
 
-1. Fork the repository and create a feature branch.
-2. Write tests for classification, routing and failure/fallback behavior.
-3. Run `cargo fmt --all -- --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test --all-targets`, `node --test plugins/model-router/tests/*.test.js`, and `node scripts/check-marketplace.mjs`.
-4. Avoid dependencies that require collecting user prompts, credentials or personal data.
-5. Keep model override opt-in and preserve existing permissions and RTK hooks.
-6. Open a PR with the full test results and version notes.
+Run:
+```sh
+cargo fmt --all -- --check
+cargo clippy --all-targets -- -D warnings
+cargo test --all-targets
+cargo build --release
+```
 
-Do not bypass checks to force a release. Real Claude Code integration tests must be distinguished from mock unit tests.
+Preserve RTK and other user hooks, keep the installer idempotent and reversible, avoid sending prompts to any third-party service, and distinguish advisory selection from actual model switches in all documentation. Never claim measured token savings without benchmarks. Check Linux/macOS/Windows CI before release.

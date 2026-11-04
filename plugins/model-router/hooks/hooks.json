@@ -1,6 +1,0 @@
-{
-  "description": "Opt-in CMR model routing",
-  "modules": [
-    "./register.js"
-  ]
-}

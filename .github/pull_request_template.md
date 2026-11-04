@@ -1,14 +1,13 @@
-## Change summary
+## Changes
 
-## Tests
+## Verification
 - [ ] `cargo fmt --all -- --check`
 - [ ] `cargo clippy --all-targets -- -D warnings`
 - [ ] `cargo test --all-targets`
-- [ ] `node --test plugins/model-router/tests/*.test.js`
-- [ ] `node scripts/check-marketplace.mjs`
+- [ ] Windows, Linux and macOS native builds
 
-## Security and compatibility
-- [ ] No credentials or private prompts logged
-- [ ] No permission or RTK hooks modified
-- [ ] Routing fallback and VS Code behavior assessed
-- [ ] Documentation and version updated when needed
+## Safety
+- [ ] No plugin, Mod, marketplace or undocumented API
+- [ ] Existing RTK and Claude Code hooks preserved
+- [ ] Advisory recommendations are not misrepresented as actual model switches
+- [ ] No user prompt content or secrets logged externally

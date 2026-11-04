@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   rust:
-    name: Rust / lint, test and build
+    name: Rust / format lint test build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -26,40 +26,13 @@ jobs:
         run: cargo fmt --all -- --check
       - name: Lint
         run: cargo clippy --all-targets -- -D warnings
-      - name: Unit tests
+      - name: Unit and integration tests
         run: cargo test --all-targets
       - name: Build
         run: cargo build --release
 
-  mod:
-    name: Mod / unit tests and marketplace manifest
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-      - name: Test routing and hooks
-        run: node --test plugins/model-router/tests/*.test.js
-      - name: Validate JSON and plugin paths
-        run: node scripts/check-marketplace.mjs
-      - name: JavaScript syntax
-        run: |
-          node --check plugins/model-router/hooks/register.js
-          node --check plugins/model-router/hooks/router-core.js
-
-  secrets:
-    name: Secrets / accidental credentials
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Scan with gitleaks
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
   native-platforms:
-    name: Native build / ${{ matrix.target }}
+    name: Native / ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -75,7 +48,17 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
-      - name: Native build
-        run: cargo build --release --target ${{ matrix.target }}
-      - name: Native test
+      - name: Native tests
         run: cargo test --all-targets
+      - name: Native release build
+        run: cargo build --release --target ${{ matrix.target }}
+
+  secrets:
+    name: Secret scanning
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

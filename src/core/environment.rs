@@ -1,38 +1,25 @@
-//! External tool integration. Never edits Claude settings directly.
-use std::env;
-use std::path::PathBuf;
-use std::process::Command;
+use std::{env, path::PathBuf, process::Command};
 
-pub const MARKETPLACE: &str = "Weslley08/cmr";
-pub const PLUGIN: &str = "model-router@weslley08-cmr";
-
-pub fn available(program: &str) -> bool {
-    Command::new(program)
+pub fn available(command: &str) -> bool {
+    Command::new(command)
         .arg("--version")
         .output()
-        .is_ok_and(|output| output.status.success())
-}
-
-pub fn run(program: &str, arguments: &[&str]) -> bool {
-    match Command::new(program).args(arguments).status() {
-        Ok(status) => status.success(),
-        Err(error) => {
-            eprintln!("Cannot start {program}: {error}");
-            false
-        }
-    }
+        .is_ok_and(|result| result.status.success())
 }
 
 pub fn home_dir() -> Option<PathBuf> {
-    env::var_os("USERPROFILE")
-        .or_else(|| env::var_os("HOME"))
-        .map(PathBuf::from)
+    env::var_os("USERPROFILE").or_else(|| env::var_os("HOME")).map(PathBuf::from)
 }
 
-pub fn print_vscode_instructions() {
-    println!("Claude Code CLI not found. For the VS Code extension:");
-    println!("  /plugin marketplace add {MARKETPLACE}");
-    println!("  /plugin install {PLUGIN}");
-    println!("Open the extension's plugin panel to complete installation.");
-    println!("Then use: /cmr status; /cmr mode balanced; /cmr auto");
+pub fn settings_path() -> Result<PathBuf, String> {
+    home_dir().map(|home| home.join(".claude").join("settings.json"))
+        .ok_or_else(|| "USERPROFILE or HOME is required to find Claude Code settings".into())
+}
+
+pub fn start_claude(model: &str, prompt: &str) -> Result<i32, String> {
+    let status = Command::new("claude")
+        .arg("--model").arg(model).arg(prompt)
+        .status()
+        .map_err(|e| format!("Cannot start Claude Code CLI: {e}. The VS Code extension does not install the 'claude' command automatically."))?;
+    Ok(status.code().unwrap_or(1))
 }

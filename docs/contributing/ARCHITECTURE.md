@@ -1,26 +1,21 @@
-# Architecture
-
-Structure inspired by [RTK](https://github.com/rtk-ai/rtk) without reusing RTK's compression implementation:
+# Native CMR architecture
 
 ```text
-src/main.rs              Thin native Rust CLI entry point
-src/core/                Argument parsing and OS/process helpers
-src/cmds/                Commands: init, doctor, status, uninstall
-src/analytics/           Usage/metric help
-plugins/model-router/    Claude Code Mod, local classification, simulated hook tests
-.claude-plugin/          Claude Code plugin marketplace catalog
-hooks/                   Integration notes, separate from RTK PreToolUse
-tests/                   Rust binary end-to-end tests
-docs/guide/              User docs
-examples/                Policy examples
-scripts/                 Project and release validation
-.github/workflows/       CI, native builds and release automation
+Windows / macOS / Linux
+  cmr (single Rust CLI)
+    ├─ src/core/routing.rs       local recommendations
+    ├─ src/core/settings.rs      safe hook config merge/uninstall
+    ├─ src/cmds/launch.rs        claude --model <recommendation> "<prompt>"
+    ├─ src/cmds/hook.rs          UserPromptSubmit stdin → systemMessage
+    └─ src/cmds/doctor.rs        PATH + hook diagnostics
+
+Claude Code CLI and VS Code extension
+  ├─ CMR UserPromptSubmit native hook (first)
+  └─ optional RTK PreToolUse Bash hook (only on tool execution)
 ```
 
-**CLI:** delegates plugin installation to official Claude Code commands; it never edits user settings directly.
+There is no plugin runtime, marketplace, proxy server or Anthropic credential integration.
 
-**Mod:** opt-in classification at `prompt.submit` and attempted model override at `turn.step`. Rules are local and deterministic. Subagent requests are left to Claude Code.
+**Critical distinction:** the hook shows advice; it cannot actually switch the model. Only `cmr launch` can choose a session's initial model via `claude --model`, and that requires standalone CLI access. This deliberate limitation avoids undocumented hacks and misleading claims.
 
-**RTK:** separate optional `PreToolUse` command-output filter, not a dependency or an alternative CMR implementation.
-
-The initial Mod integration has not been validated in a real VS Code/Claude Code session; do not confuse mocked tests with host compatibility.
+The settings editor preserves unrelated hooks, including RTK. Unit tests verify registration/removal without mutating real user files.

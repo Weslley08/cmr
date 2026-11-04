@@ -1,6 +1,5 @@
-//! Metrics are currently scoped to each Claude Code session.
 pub fn print_stats_help() {
-    println!("CMR statistics are session-scoped: /cmr stats inside Claude Code.");
-    println!("For RTK command savings, run: rtk gain");
-    println!("These counters do not establish subscription quota savings.");
+    println!("CMR v0.1.0 provides local recommendations, not verified token-saving measurements.");
+    println!("For current model in Claude Code, use /status or /model.");
+    println!("For RTK's unrelated command-output savings, run: rtk gain");
 }

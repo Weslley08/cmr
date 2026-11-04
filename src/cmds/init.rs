@@ -1,17 +1,22 @@
-use crate::core::environment::{available, print_vscode_instructions, run, MARKETPLACE, PLUGIN};
+use crate::core::{environment::settings_path, settings};
 
-pub fn execute() -> u8 {
-    if !available("claude") {
-        print_vscode_instructions();
-        return 2;
-    }
-    println!("Registering CMR marketplace...");
-    // The marketplace might be registered already. Always attempt install.
-    let _ = run("claude", &["plugin", "marketplace", "add", MARKETPLACE]);
-    if !run("claude", &["plugin", "install", PLUGIN]) {
-        eprintln!("Plugin install failed. Inspect Claude Code plugin manager.");
-        return 1;
-    }
-    println!("CMR installed. Start a new session and run /cmr auto.");
+pub fn execute(dry_run: bool) -> u8 {
+    let result = (|| -> Result<(), String> {
+        let path = settings_path()?;
+        let mut root = settings::read(&path)?;
+        if !settings::install(&mut root)? {
+            println!("CMR UserPromptSubmit hook already registered at {}", path.display());
+            return Ok(());
+        }
+        if dry_run {
+            println!("[dry-run] Would add 'cmr hook prompt' to UserPromptSubmit in {}", path.display());
+            return Ok(());
+        }
+        settings::save(&path, &root)?;
+        println!("CMR hook installed: {}. Restart Claude Code / VS Code.", path.display());
+        println!("CMR only recommends the model in VS Code; it cannot switch per prompt via native hooks.");
+        Ok(())
+    })();
+    if let Err(e) = result { eprintln!("{e}"); return 1; }
     0
 }
