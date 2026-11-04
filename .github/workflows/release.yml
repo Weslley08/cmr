@@ -9,7 +9,29 @@ permissions:
   contents: read
 
 jobs:
+  mod:
+    name: Validate routing Mod before release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check Mod and tests
+        run: |
+          node --check plugins/model-router/hooks/register.mjs
+          node --check plugins/model-router/hooks/policy.mjs
+          node --test plugins/model-router/tests/*.test.mjs
+          node scripts/check-mod.mjs
+      - name: Verify Cargo and plugin versions match
+        shell: bash
+        run: |
+          CARGO_VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
+          PLUGIN_VERSION=$(node -p "JSON.parse(require('fs').readFileSync('plugins/model-router/.claude-plugin/plugin.json','utf8')).version")
+          test "${CARGO_VERSION}" = "${PLUGIN_VERSION}" || { echo "Version mismatch"; exit 1; }
+
   package:
+    needs: mod
     name: ${{ matrix.target }}
     runs-on: ${{ matrix.os }}
     strategy:
