@@ -1,0 +1,88 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, target: x86_64-pc-windows-msvc, ext: zip }
+          - { os: ubuntu-22.04, target: x86_64-unknown-linux-gnu, ext: tar.gz }
+          - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu, ext: tar.gz }
+          - { os: macos-15-intel, target: x86_64-apple-darwin, ext: tar.gz }
+          - { os: macos-15, target: aarch64-apple-darwin, ext: tar.gz }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+      - name: Check tag matches Cargo version
+        shell: bash
+        run: |
+          VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
+          if [ "${GITHUB_REF_TYPE}" = "tag" ] && [ "${GITHUB_REF_NAME}" != "v${VERSION}" ]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match Cargo version v${VERSION}"
+            exit 1
+          fi
+      - name: Verify Rust
+        run: cargo test --all-targets
+      - name: Verify Mod
+        shell: bash
+        run: node --test plugins/model-router/tests/*.test.js
+      - name: Build native CLI
+        run: cargo build --release --target ${{ matrix.target }}
+      - name: Package Unix
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          mkdir -p dist
+          tar -C target/${{ matrix.target }}/release -czf dist/cmr-${{ matrix.target }}.tar.gz cmr
+      - name: Package Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          Compress-Archive -Path "target/${{ matrix.target }}/release/cmr.exe" -DestinationPath "dist/cmr-${{ matrix.target }}.zip"
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: cmr-${{ matrix.target }}
+          path: dist/*
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cmr-*
+          merge-multiple: true
+          path: dist
+      - name: Generate checksums
+        shell: bash
+        run: |
+          cd dist
+          sha256sum cmr-* > SHA256SUMS
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          gh release create "${GITHUB_REF_NAME}" dist/* --verify-tag --generate-notes --title "CMR ${GITHUB_REF_NAME}"

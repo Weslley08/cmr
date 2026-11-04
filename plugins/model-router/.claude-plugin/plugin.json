@@ -1,0 +1,19 @@
+{
+  "name": "model-router",
+  "displayName": "CMR Model Router",
+  "version": "0.1.0",
+  "description": "Opt-in model selection for Claude Code, with conservative local rules and no network classifier",
+  "author": {
+    "name": "Weslley08",
+    "url": "https://github.com/Weslley08"
+  },
+  "repository": "https://github.com/Weslley08/cmr",
+  "license": "MIT",
+  "keywords": [
+    "models",
+    "routing",
+    "haiku",
+    "sonnet",
+    "opus"
+  ]
+}
