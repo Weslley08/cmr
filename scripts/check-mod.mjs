@@ -1,0 +1,14 @@
+import {readFileSync,existsSync} from 'node:fs';
+import assert from 'node:assert/strict';
+const read=p=>JSON.parse(readFileSync(p,'utf8'));
+const market=read('.claude-plugin/marketplace.json');
+assert.equal(market.name,'cmr');
+assert.equal(market.plugins.length,1);
+const entry=market.plugins[0];
+assert.equal(entry.source,'./plugins/model-router');
+const root='plugins/model-router/';
+assert.equal(read(root+'.claude-plugin/plugin.json').name,entry.name);
+const modules=read(root+'hooks/hooks.json').modules;
+assert.equal(modules.length,1);
+assert.ok(existsSync(root+'hooks/'+modules[0].slice(2)));
+console.log('CMR Mod marketplace layout OK');

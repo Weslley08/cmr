@@ -1,0 +1,6 @@
+{
+  "description": "CMR per-request model routing",
+  "modules": [
+    "./register.mjs"
+  ]
+}

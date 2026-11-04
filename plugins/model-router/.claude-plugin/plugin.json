@@ -1,0 +1,11 @@
+{
+  "name": "model-router",
+  "version": "0.2.0",
+  "description": "Automatic per-request Haiku, Sonnet and Opus routing for Claude Code",
+  "author": {
+    "name": "Weslley08",
+    "url": "https://github.com/Weslley08"
+  },
+  "repository": "https://github.com/Weslley08/cmr",
+  "license": "MIT"
+}

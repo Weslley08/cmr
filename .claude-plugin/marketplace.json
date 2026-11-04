@@ -1,0 +1,15 @@
+{
+  "name": "cmr",
+  "description": "Claude Model Router: opt-in rules-based model switching for Claude Code",
+  "owner": {
+    "name": "Weslley08",
+    "url": "https://github.com/Weslley08"
+  },
+  "plugins": [
+    {
+      "name": "model-router",
+      "source": "./plugins/model-router",
+      "description": "Automatic per-request Haiku, Sonnet and Opus routing via the official turn.step API"
+    }
+  ]
+}
