@@ -103,11 +103,33 @@ fn execute(action: Action) -> u8 {
         }
         Action::Doctor => {
             println!("CMR CLI: {}", env!("CARGO_PKG_VERSION"));
-            println!("Claude Code CLI: {}", if available("claude") { "found" } else { "not found (VS Code extension can work independently)" });
-            println!("RTK (optional): {}", if available("rtk") { "found" } else { "not found" });
+            println!(
+                "Claude Code CLI: {}",
+                if available("claude") {
+                    "found"
+                } else {
+                    "not found (VS Code extension can work independently)"
+                }
+            );
+            println!(
+                "RTK (optional): {}",
+                if available("rtk") {
+                    "found"
+                } else {
+                    "not found"
+                }
+            );
             if let Some(home) = home_dir() {
                 let settings = home.join(".claude").join("settings.json");
-                println!("Claude settings: {} ({})", settings.display(), if settings.exists() { "exists" } else { "not found" });
+                println!(
+                    "Claude settings: {} ({})",
+                    settings.display(),
+                    if settings.exists() {
+                        "exists"
+                    } else {
+                        "not found"
+                    }
+                );
             }
             println!("Note: this checks availability, not actual routing or host compatibility.");
         }
@@ -163,10 +185,7 @@ mod tests {
     #[test]
     fn accepts_global_flag_for_init() {
         assert_eq!(parse(&["init".into(), "-g".into()]), Ok(Action::Init));
-        assert_eq!(
-            parse(&["init".into(), "--global".into()]),
-            Ok(Action::Init)
-        );
+        assert_eq!(parse(&["init".into(), "--global".into()]), Ok(Action::Init));
     }
 
     #[test]
