@@ -3,14 +3,14 @@
 ## [Unreleased]
 
 ### Changed
-- Replaced the experimental Claude Code Mod/plugin and marketplace with a **native Rust hook executable**.
-- Separate advisory classification from effective CLI model selection (`cmr launch`).
-- Added safe, idempotent JSON hook installation that preserves RTK `PreToolUse`.
+- CMR now supports real per-request model routing through a Claude Code Mod.
+- Rust `cmr init -g` installs the Mod through Claude Code's plugin manager, rather than the old advisory hook.
+- Adds a GitHub-hosted plugin marketplace, Mod tests and CI validation.
+- Keeps legacy advisory hook code for backwards compatibility only.
 
-### Removed
-- Plugin marketplace, JavaScript Mod, `/cmr` slash commands and mocked Mod routing claims.
+### Known limitations
+- Claude Code VS Code end-to-end model routing has not yet been verified.
+- No public binary release, WinGet manifest approval or Homebrew tap release.
 
-## [0.1.0] — initial experimental source baseline
-
-- Cross-platform Rust CLI, local task classification, optional RTK coexistence.
-- CI and release workflow scaffolding. No package-manager listing published yet.
+## 0.1.0
+- Initial Rust CLI, advisory UserPromptSubmit hook and source-only cross-platform builds.

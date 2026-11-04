@@ -1,10 +1,9 @@
-# Native hook integration
+# Legacy native hook
 
-**CMR uses the same native hook configuration system as RTK, but a different event.** No Claude Code plugin or marketplace.
+CMR 0.1.0 used `UserPromptSubmit` to display model recommendations. That setting hook **cannot actually change the active model**.
 
-- `cmr hook prompt`: `UserPromptSubmit` — receives a prompt, applies local rules and returns a **recommendation-only** `systemMessage`.
-- `rtk hook claude`: `PreToolUse` matcher `Bash` — later intercepts compatible tool calls.
+As of 0.2.0, the default is the **Claude Code Mod** under `plugins/model-router`. It changes `turn.step` requests before Claude Code sends them, using the official API.
 
-Claude Code CLI and the local VS Code Claude Code extension use the global `~/.claude/settings.json` native hook registry.
+The old `cmr hook prompt` CLI command remains available for users of the original experimental version, but `cmr init -g` does **not** register it.
 
-Official hooks do **not** expose a field to overwrite the active model at `UserPromptSubmit`. `PreModelSwitch` can allow/deny a requested switch, not originate one. Use `cmr launch` to set an initial model for a new CLI session.
+RTK's separate `PreToolUse` hook is preserved. No native shell hook can replace the Mod's `turn.step` functionality.

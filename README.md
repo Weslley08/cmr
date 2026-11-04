@@ -1,6 +1,6 @@
 # CMR — Claude Model Router
 
-<p align="center"><strong>A native model recommender and Claude Code session launcher — no plugin or marketplace.</strong></p>
+<p align="center"><strong>Automatic Haiku / Sonnet / Opus routing in Claude Code, with a cross-platform Rust CLI.</strong></p>
 
 <p align="center">
 <a href="https://github.com/Weslley08/cmr/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Weslley08/cmr/actions/workflows/ci.yml/badge.svg"></a>
@@ -8,106 +8,113 @@
 <a href="LICENSE"><img alt="MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
 </p>
 
-<p align="center"><a href="README_pt.md">Português</a> · <a href="INSTALL.md">Installation</a> · <a href="docs/contributing/ARCHITECTURE.md">Architecture</a> · <a href="CHANGELOG.md">Changelog</a></p>
+<p align="center"><a href="README_pt.md">Português</a> · <a href="INSTALL.md">Install</a> · <a href="docs/contributing/ARCHITECTURE.md">Architecture</a> · <a href="CHANGELOG.md">Changelog</a></p>
 
-> **Experimental v0.1.0.** This is a standalone Rust executable for Windows, macOS and Linux. It is **not** a Claude Code plugin, Mod, marketplace entry, API proxy or interception of credentials. GitHub Releases, WinGet and Homebrew installation are being prepared.
+> **Experimental 0.2.0 source (not a published binary release).** The native Claude Code Mod can actually select a different model per main-conversation model request through the documented `turn.step` event. End-to-end operation in a real Claude Code session is not yet verified. No WinGet or Homebrew package has been published.
 
-## Why CMR?
+## What CMR does
 
-CMR and [RTK](https://github.com/rtk-ai/rtk) solve different problems:
+- **Auto-route** scoped read-only prompts to Haiku, ordinary development to Sonnet and complex/critical work to Opus.
+- Uses official Claude Code **Mods** capabilities (`prompt.submit` + `turn.step`) without Anthropic API keys, an external proxy or an extra classifier model call.
+- Commands: `/cmr status`, `/cmr auto`, `/cmr off`, `/cmr mode economy|balanced|quality`, `/cmr force haiku|sonnet|opus|none`, `/cmr stats`.
+- Uses one choice per prompt for the main conversation, leaving subagent model selection alone. Session-local usage counters (not a savings guarantee).
+- **RTK remains optional and independent**. Its `PreToolUse` Bash hook is not modified.
 
-- **CMR** analyzes task text and recommends Haiku, Sonnet or Opus with deterministic local rules.
-- **RTK** compacts supported shell-tool output using a `PreToolUse` hook.
+**Caveat:** this is a rule-based router, not a model trained to predict task difficulty; cache invalidation and quality regressions can outweigh savings. The active IDE model picker may not display the per-request model. Available models remain constrained by your Claude account and provider.
 
-One binary, `cmr`, can register a native `UserPromptSubmit` hook in `~/.claude/settings.json`. The hook works across **locally running Claude Code CLI and the official VS Code extension**, where the native hooks are supported.
+## Install in VS Code (no standalone CLI required)
 
-**Important limitation:** Native `UserPromptSubmit` hooks can add context or display a message but **cannot change the active Claude model**. Likewise, `PreModelSwitch` can approve/block an already-requested switch, not initiate one. CMR's native hook reports its recommendation honestly. The `cmr launch` command can **actually select a model when starting a Claude Code CLI session**, via the official `claude --model` flag. Automatic per-prompt model switching in VS Code is **not** claimed or implemented. No secret workaround or undocumented API is used.
+In the **official Claude Code extension** open `/plugin` and register our GitHub repository as a marketplace:
 
-## Usage
-
-```sh
-cmr init -g --dry-run    # Preview settings.json modifications
-cmr init -g              # Install native hook globally; preserves RTK
-cmr doctor               # Diagnose Claude Code and RTK
-cmr status               # Verify hook registration
-cmr recommend "List files in src"          # Prints: haiku (advisory only)
-cmr recommend "Design a distributed system" # Prints: opus (advisory only)
-cmr launch "Implement an endpoint with tests" # Starts CLI with --model sonnet
-cmr uninstall -g         # Remove only the CMR hook
+```text
+/plugin marketplace add Weslley08/cmr
+/plugin install model-router@cmr
 ```
 
-In the VS Code extension, the hook runs before a submitted prompt and may display an **advisory recommendation** such as `CMR suggests sonnet`. This does **not** imply the model actually switched; use the Claude Code model picker or `/model` to switch manually.
+Select **user** scope to enable it in all local projects. Use `/reload-plugins` or restart the Claude Code session. Then:
 
-## Execution order: CMR then RTK
-
-```mermaid
-flowchart TD
-  A[User submits prompt] --> B[CMR UserPromptSubmit hook]
-  B --> C[Claude Code uses current model]
-  C --> D{Needs Bash tool?}
-  D -- Yes --> E[RTK PreToolUse Bash hook]
-  E --> F[Tool output compacted]
-  D -- No --> G[Claude response]
-  F --> G
+```text
+/cmr status
+/cmr mode balanced
+/cmr auto
 ```
 
-CMR and RTK do not compete for hook order. If Claude never calls Bash, RTK does not run.
+Routing is enabled by default once the plugin is loaded. `/cmr off` opts out for the current session.
 
-## Install
+The word *marketplace* here simply means a GitHub-hosted plugin catalog: **not a paid store or VS Code Marketplace listing**.
 
-Until binaries and package manager manifests have been published, build from source:
+## Optional Rust CLI (RTK-style)
 
 ```sh
 git clone https://github.com/Weslley08/cmr.git
 cd cmr
-cargo build --release
 cargo test --all-targets
+cargo build --release
 ```
 
-Windows produces `target/release/cmr.exe`; Linux/macOS produce `target/release/cmr`. Add the directory to PATH before `cmr init -g`. See [INSTALL.md](INSTALL.md).
-
-Planned channels **(not currently published)**:
+Add `target/release/` to PATH. The CLI manages the plugin when the standalone Claude Code `claude` command exists:
 
 ```sh
-winget install Weslley08.CMR       # Windows, after approval
-brew install weslley08/tap/cmr    # macOS/Linux, after tap publication
+cmr init -g --dry-run
+cmr init -g
+cmr doctor
+cmr status
+cmr recommend "List files in src"
+cmr launch "Implement an endpoint and tests"
+cmr uninstall -g
 ```
 
-## Project structure
+When `claude` is **not** in PATH (as with some VS Code-only installs), `cmr init -g` prints the VS Code installation instructions and does not claim success. The old `cmr hook prompt` advisory command remains for backwards compatibility but is no longer installed by default.
 
-Inspired by RTK's clear split between `src/core`, `src/cmds`, `src/analytics`, `hooks`, `tests`, `docs`, `scripts` and CI:
+After a tested GitHub Release, we intend to publish WinGet and Homebrew packages. The planned identifiers `Weslley08.CMR` and `weslley08/tap/cmr` **are not yet available**.
+
+## Architecture
 
 ```text
 cmr/
+├── .claude-plugin/marketplace.json   # GitHub plugin catalog
+├── plugins/model-router/
+│   ├── .claude-plugin/plugin.json     # Mod manifest
+│   ├── hooks/
+│   │   ├── hooks.json                # Register one JS module
+│   │   ├── policy.mjs                # No-network policy
+│   │   └── register.mjs              # prompt.submit, turn.step, /cmr
+│   └── tests/                        # JavaScript unit tests
 ├── src/
 │   ├── main.rs
-│   ├── core/              # CLI parsing, routing and safe JSON hooks
-│   ├── cmds/              # init, uninstall, launch, recommend, doctor, status
+│   ├── core/                         # CLI and legacy advisory
+│   ├── cmds/                         # Installation and diagnostics
 │   └── analytics/
-├── hooks/                 # Native hook integration docs
-├── tests/                 # Rust CLI integration tests
-├── docs/                  # Guides, architecture and distribution
-├── examples/
+├── hooks/                            # Legacy hook documentation
+├── tests/                            # Rust integration tests
+├── docs/ and examples/
 ├── scripts/
 ├── packaging/
-├── .github/workflows/
-├── Cargo.toml
-├── README_pt.md
-├── INSTALL.md
-└── LICENSE
+└── .github/workflows/
 ```
 
-## Development
+## Development and verification
+
+Requirements: Rust stable; Node.js 22+ for Mod unit tests. Claude Code 2.1.309+ for model aliases in `turn.step`.
 
 ```sh
 cargo fmt --all -- --check
 cargo clippy --all-targets -- -D warnings
 cargo test --all-targets
-cargo build --release
+node --test plugins/model-router/tests/*.test.mjs
+node scripts/check-mod.mjs
 ```
 
-There is no plugin or JavaScript runtime dependency. The hook processes prompt text locally and sends no analytics or prompts to other services. The installed hook must be visible in `settings.json`; the RTK hook stays intact.
+If you have the standalone `claude` binary, validate the **actual Mod API** in your installed build:
 
-## Status and license
+```sh
+claude plugin validate plugins/model-router
+claude plugin test plugins/model-router
+claude --plugin-dir ./plugins/model-router
+```
 
-**Not released as a package yet.** Cross-platform CI validates native builds; the CLI's effective `--model` launch requires the standalone Claude Code CLI. License [MIT](LICENSE).
+These tests are not a substitute for observing actual model selection and token usage in a Claude Code session.
+
+## License and security
+
+MIT licensed. Review [SECURITY.md](SECURITY.md) before installing third-party Mods. The Mod can run with your Claude Code user's permissions, although CMR currently makes no network requests or filesystem edits. 

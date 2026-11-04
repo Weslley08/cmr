@@ -1,7 +1,19 @@
-# CMR security policy
+# Security policy
 
-CMR is experimental. Report security vulnerabilities through a private [GitHub security advisory](https://github.com/Weslley08/cmr/security/advisories/new).
+CMR 0.2.0 is experimental. Report vulnerabilities privately using [GitHub security advisories](https://github.com/Weslley08/cmr/security/advisories/new).
 
-The Rust executable processes Claude Code hook JSON **locally**, does not send prompts to external services, does not need an API key, and must not read or modify authentication tokens. `cmr init` updates only the native `UserPromptSubmit` hook in the user's settings and backs up the file. It must not overwrite RTK or unrelated hooks.
+## Trust
 
-Review the source before installing; native hooks execute with your user permissions. No automatic per-turn model switch is claimed.
+The Claude Code Mod executes in Claude Code with user privileges. Review `plugins/model-router/hooks/register.mjs` and `policy.mjs` before installing.
+
+CMR currently:
+- Makes **no** external classifier API requests.
+- Does not read tokens or credential files.
+- Does not run shell commands from the Mod.
+- Does not override tool approvals, security policy, or subagent models.
+- Does not install, remove, or modify RTK.
+- Maintains counters only in memory for the active session.
+
+Model routing cannot guarantee better quality or savings. Use `/cmr off` or disable the Mod in `/plugin` to regain the default Claude Code selection.
+
+Supply-chain signing and end-to-end tests are still outstanding before a stable public release.

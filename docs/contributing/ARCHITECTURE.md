@@ -1,21 +1,22 @@
-# Native CMR architecture
+# CMR internals
 
-```text
-Windows / macOS / Linux
-  cmr (single Rust CLI)
-    ├─ src/core/routing.rs       local recommendations
-    ├─ src/core/settings.rs      safe hook config merge/uninstall
-    ├─ src/cmds/launch.rs        claude --model <recommendation> "<prompt>"
-    ├─ src/cmds/hook.rs          UserPromptSubmit stdin → systemMessage
-    └─ src/cmds/doctor.rs        PATH + hook diagnostics
+CMR has two independent parts:
 
-Claude Code CLI and VS Code extension
-  ├─ CMR UserPromptSubmit native hook (first)
-  └─ optional RTK PreToolUse Bash hook (only on tool execution)
+1. **Rust CLI** under `src/core`, `src/cmds`, and `src/analytics`, similar to RTK's repository organization. It provides installation through Claude's plugin manager, diagnostics, recommendations and CLI session launch.
+2. **Claude Code Mod** under `plugins/model-router`, which actually selects per-request model aliases via the documented `turn.step` event. A GitHub marketplace manifest at the root allows user-scope installation.
+
+`UserPromptSubmit` (old Rust hook) is legacy, **advisory only**, and is no longer installed by `cmr init -g`.
+
+No proxy, captured credentials, privileged process, external classifier or change to the RTK hook is required. Ensure the Mod loads and the expected model really processes each request before making optimization claims.
+
+## Testing
+
+```sh
+cargo fmt --all -- --check
+cargo clippy --all-targets -- -D warnings
+cargo test --all-targets
+node --test plugins/model-router/tests/*.test.mjs
+node scripts/check-mod.mjs
 ```
 
-There is no plugin runtime, marketplace, proxy server or Anthropic credential integration.
-
-**Critical distinction:** the hook shows advice; it cannot actually switch the model. Only `cmr launch` can choose a session's initial model via `claude --model`, and that requires standalone CLI access. This deliberate limitation avoids undocumented hacks and misleading claims.
-
-The settings editor preserves unrelated hooks, including RTK. Unit tests verify registration/removal without mutating real user files.
+On a machine with Claude Code CLI, additionally run `claude plugin validate ./plugins/model-router` and `claude plugin test ./plugins/model-router`. The GitHub CI only mocks hook contracts; it does not send requests to Anthropic.

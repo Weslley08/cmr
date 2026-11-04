@@ -1,10 +1,36 @@
-# CMR installation
+# Installation (CMR 0.2.0 experimental)
 
-The CMR project is a **native Rust CLI**, not a Claude Code plugin. You do not need a marketplace.
+## Claude Code VS Code extension — recommended
 
-## Build from source (today)
+Requires Claude Code 2.1.309 or later for reliable model alias routing.
 
-Install Rust stable and Git:
+1. Open the official Claude Code extension panel.
+2. In `/plugin`, add `Weslley08/cmr` as a marketplace.
+3. Install `model-router@cmr` at **user scope**.
+4. Use `/reload-plugins` or restart the session.
+5. Run `/cmr status`; then `/cmr mode balanced` and `/cmr auto`.
+6. Try read-only and code-change prompts; use `/cmr stats` to inspect observed model families.
+
+This installs a plugin from your own GitHub repository; it is not the Visual Studio Marketplace and does not require the standalone Claude Code CLI.
+
+## Claude Code CLI (if available)
+
+```sh
+claude plugin marketplace add Weslley08/cmr
+claude plugin install model-router@cmr --scope user
+```
+
+To develop and validate from a local clone:
+
+```sh
+claude plugin validate ./plugins/model-router
+claude plugin test ./plugins/model-router
+claude --plugin-dir ./plugins/model-router
+```
+
+## Optional Rust installer
+
+Build from source until GitHub Releases are available:
 
 ```sh
 git clone https://github.com/Weslley08/cmr.git
@@ -13,50 +39,31 @@ cargo test --all-targets
 cargo build --release
 ```
 
-Move `target/release/cmr` (or Windows `target/release/cmr.exe`) into an existing PATH directory, or add its containing directory to your user PATH. Restart terminals and VS Code after changing PATH.
-
-## Set up native Claude Code hooks
+Add the produced `target/release` directory to PATH, then:
 
 ```sh
 cmr init -g --dry-run
 cmr init -g
-cmr status
 cmr doctor
+cmr status
 ```
 
-The installer edits only `~/.claude/settings.json`, retaining all existing hooks. It backs up the original settings as `settings.json.cmr.bak` before its first modification, and will not overwrite the first backup on subsequent runs. The added entry is:
+`cmr init` delegates to the official Claude Code plugin manager; **it does not inject a UserPromptSubmit hook** anymore. If `claude` is not found, it prints VS Code instructions and exits without installing. No Rust CLI is needed for VS Code setup.
 
-```json
-{
-  "hooks": {
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          { "type": "command", "command": "cmr hook prompt", "timeout": 10 }
-        ]
-      }
-    ]
-  }
-}
-```
+## RTK
 
-This is **merged**, not used to replace existing settings. RTK's separate `PreToolUse` Bash hook remains untouched.
+RTK is optional; it uses its own `PreToolUse` hook. CMR does not uninstall or patch RTK. To diagnose RTK separately, run `rtk init --show` and `rtk gain`.
 
-## How each integration behaves
+## Disable, uninstall, rollback
 
-- **Claude Code CLI**: `cmr launch "prompt"` chooses a model for a **new** session and runs `claude --model <alias> "prompt"`, if the CLI is installed.
-- **VS Code Claude Code extension**: native `UserPromptSubmit` hook runs, displaying an advisory model recommendation. There is no documented native hook that forces a per-prompt switch. Use the extension's model selector or `/model` for actual changes.
-- **RTK**: still runs independently before compatible Bash tool calls.
-
-## Planned package channels
-
-WinGet `Weslley08.CMR`, Homebrew `weslley08/tap/cmr` and signed release assets are **planned**, not yet available.
-
-## Uninstall
+In Claude Code, run `/cmr off` to disable routing until the session ends. Disable or uninstall `model-router@cmr` via `/plugin`; the CLI equivalent is:
 
 ```sh
-cmr uninstall -g --dry-run
-cmr uninstall -g
+claude plugin uninstall model-router@cmr --scope user
 ```
 
-This removes only the CMR hook. It does not remove RTK or Claude Code settings.
+Existing legacy advisory hooks from CMR 0.1.0 are not removed automatically during installation. Remove such duplicates with care and preserve your RTK hook.
+
+## Distribution
+
+`winget install Weslley08.CMR` and `brew install weslley08/tap/cmr` are planned, not yet published.
