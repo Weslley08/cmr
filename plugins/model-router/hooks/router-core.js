@@ -17,7 +17,7 @@ export function classify(prompt, profile = 'balanced') {
   if (complex.test(text) || (broad.test(text) && write.test(text))) {
     return { model: profile === 'economy' ? 'sonnet' : 'opus', reason: 'Complex architecture or broad change', tier: 'high' };
   }
-  if (simple.test(text) && !write.test(text) && !broad.test(text) && text.length <= 250 && (scope.test(text) || text.length < 120) && profile !== 'quality') {
+  if (simple.test(text) && !write.test(text) && !broad.test(text) && text.length <= 250 && scope.test(text) && profile !== 'quality') {
     return { model: 'haiku', reason: 'Scoped read-only task', tier: 'low' };
   }
   if (write.test(text) && profile === 'quality') return { model: 'opus', reason: 'Quality profile: implementation', tier: 'medium' };
