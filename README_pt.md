@@ -6,7 +6,7 @@
 
 [English](README.md) · [Instalação](INSTALL.md) · [Arquitetura](docs/contributing/ARCHITECTURE.md)
 
-> **Código experimental 0.2.0:** o Mod utiliza a API oficial `turn.step` para modificar o modelo das requisições principais do Claude Code. Ainda precisamos verificar a integração em uma sessão real; não há publicação WinGet/Homebrew.
+> **Código experimental 0.2.1:** o Mod utiliza a API oficial `turn.step` para modificar o modelo das requisições principais do Claude Code. Ainda precisamos verificar a integração em uma sessão real; não há publicação WinGet/Homebrew.
 
 ## Como funciona
 
@@ -73,6 +73,6 @@ O antigo hook que somente recomendava modelos continua disponível por compatibi
 
 ### Estado
 
-**Ainda não há release binário público nem pacote WinGet aprovado.** É necessário validar o Mod na sua extensão Claude Code 2.1.318 e conferir quais modelos responderam às requisições. Os números de uso não garantem economia total de tokens.
+**Ainda não há release binário público nem pacote WinGet aprovado.** É necessário validar o Mod na sua extensão Claude Code 2.1.318 e conferir quais modelos responderam às requisições. A partir da 0.2.1, as estatísticas separam o modelo solicitado do modelo informado pela execução; requisições sem modelo informado aparecem como **unverified**. Os números de uso não garantem economia total de tokens.
 
 Licença [MIT](LICENSE).

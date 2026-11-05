@@ -10,7 +10,7 @@
 
 <p align="center"><a href="README_pt.md">Português</a> · <a href="INSTALL.md">Install</a> · <a href="docs/contributing/ARCHITECTURE.md">Architecture</a> · <a href="CHANGELOG.md">Changelog</a></p>
 
-> **Experimental 0.2.0 source (not a published binary release).** The native Claude Code Mod can actually select a different model per main-conversation model request through the documented `turn.step` event. End-to-end operation in a real Claude Code session is not yet verified. No WinGet or Homebrew package has been published.
+> **Experimental 0.2.1 source (not a published binary release).** The native Claude Code Mod can actually select a different model per main-conversation model request through the documented `turn.step` event. End-to-end operation in a real Claude Code session is not yet verified. No WinGet or Homebrew package has been published.
 
 ## What CMR does
 
@@ -18,6 +18,7 @@
 - Uses official Claude Code **Mods** capabilities (`prompt.submit` + `turn.step`) without Anthropic API keys, an external proxy or an extra classifier model call.
 - Commands: `/cmr status`, `/cmr auto`, `/cmr off`, `/cmr mode economy|balanced|quality`, `/cmr force haiku|sonnet|opus|none`, `/cmr stats`.
 - Uses one choice per prompt for the main conversation, leaving subagent model selection alone. Session-local usage counters (not a savings guarantee).
+- **0.2.1:** distinguishes selected model aliases from provider-reported models (unknown when the host does not report a model); avoids misclassifying read-only prompts such as *do not modify anything* as code changes.
 - **RTK remains optional and independent**. Its `PreToolUse` Bash hook is not modified.
 
 **Caveat:** this is a rule-based router, not a model trained to predict task difficulty; cache invalidation and quality regressions can outweigh savings. The active IDE model picker may not display the per-request model. Available models remain constrained by your Claude account and provider.
