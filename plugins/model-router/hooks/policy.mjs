@@ -13,6 +13,10 @@ const broad = /\b(todo o sistema|toda a base|todos os modulos|entire|whole|codeb
 
 export function chooseModel(prompt, profile = 'balanced') {
   const s = normalize(prompt);
+  // Negated write verbs in a read-only request are constraints, not mutations:
+  // "Liste os arquivos. Nao modifique nada." should remain a Haiku candidate.
+  // Other positive write verbs ("implemente", "refatore") still count as changes.
+  const intent = s.replace(/\b(?:nao|nunca|sem|never|do not|don't)\s+(?:modif\w*|alter\w*|edit\w*|chang\w*|writ\w*|escrev\w*|creat\w*|cri\w*)\b/g, '');
   const p = ['economy', 'balanced', 'quality'].includes(profile) ? profile : 'balanced';
   // Explicit user override beats heuristics and can be reset with /cmr force none.
   const explicit = s.match(/\b(?:use|utilize|usar|modelo|model|forcar|force|rode com|execute com)\s+(?:o\s+)?(haiku|sonnet|opus)\b/);
@@ -21,7 +25,7 @@ export function chooseModel(prompt, profile = 'balanced') {
   if (complex.test(s) || (broad.test(s) && changes.test(s))) {
     return {model:p==='economy'?'sonnet':'opus',tier:'complex',reason:'architecture or broad change'};
   }
-  if (p !== 'quality' && s.length <= 240 && simple.test(s) && scoped.test(s) && !changes.test(s)) {
+  if (p !== 'quality' && s.length <= 240 && simple.test(s) && scoped.test(s) && !changes.test(intent)) {
     return {model:'haiku',tier:'simple',reason:'scoped read-only task'};
   }
   if (p === 'quality' && changes.test(s)) return {model:'opus',tier:'medium',reason:'quality profile'};
