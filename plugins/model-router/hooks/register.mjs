@@ -10,7 +10,9 @@ export function register(on) {
     last: null,
     promptNumber: 0,
     loggedPrompt: 0,
-    counts: {haiku:0,sonnet:0,opus:0},
+    counts: {haiku:0,sonnet:0,opus:0}, // Selected aliases; not verified provider models.
+    confirmed: {haiku:0,sonnet:0,opus:0},
+    unverified: 0,
     usage: {input:0,output:0,cacheRead:0,cacheWrite:0}
   };
 
@@ -36,10 +38,12 @@ export function register(on) {
       return {text:'CMR override '+(state.forced??'none')+'.'};
     }
     if (action==='stats') {
-      const u=state.usage,c=state.counts;
-      return {text:'CMR requests: Haiku '+c.haiku+', Sonnet '+c.sonnet+', Opus '+c.opus+
+      const u=state.usage,c=state.counts,v=state.confirmed;
+      return {text:'CMR requests (selected aliases): Haiku '+c.haiku+', Sonnet '+c.sonnet+', Opus '+c.opus+
+        '; provider-reported: Haiku '+v.haiku+', Sonnet '+v.sonnet+', Opus '+v.opus+
+        '; unverified '+state.unverified+
         '; input '+u.input+', output '+u.output+', cache read '+u.cacheRead+
-        ', cache write '+u.cacheWrite+'. Counters are session-only; no savings guarantee.'};
+        ', cache write '+u.cacheWrite+'. Counts are session-only; selected is not proof of actual model or savings.'};
     }
     if (action==='status') {
       return {text:'CMR '+(state.active?'ON':'OFF')+'; profile '+state.profile+
@@ -66,9 +70,12 @@ export function register(on) {
     const result=yield* next({...e,model});
     const usage=result?.usage;
     if (usage) {
-      const actual=String(usage.model??model).toLowerCase();
-      const family=['haiku','sonnet','opus'].find(name=>actual.includes(name));
-      if (family) state.counts[family]++;
+      if (Object.hasOwn(state.counts,model)) state.counts[model]++;
+      // Do not infer the provider's model from our own routing request.
+      const reported=typeof usage.model==='string'?usage.model.toLowerCase():'';
+      const family=['haiku','sonnet','opus'].find(name=>reported.includes(name));
+      if (family) state.confirmed[family]++;
+      else state.unverified++;
       state.usage.input+=Number(usage.input_tokens??0);
       state.usage.output+=Number(usage.output_tokens??0);
       state.usage.cacheRead+=Number(usage.cache_read_input_tokens??0);
