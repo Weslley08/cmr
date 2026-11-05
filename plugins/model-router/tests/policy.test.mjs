@@ -4,6 +4,10 @@ import {chooseModel} from '../hooks/policy.mjs';
 
 const cases=[
   ['Liste arquivos do src','balanced','haiku'],
+  ['Liste os arquivos do diretório src deste projeto. Não modifique nada.','balanced','haiku'],
+  ['List files from src. Do not modify anything.','balanced','haiku'],
+  ['Liste arquivos do src, mas implemente tambem um endpoint','balanced','sonnet'],
+  ['Liste arquivos e não modifique nada, mas implemente um endpoint','balanced','sonnet'],
   ['Where is the README file?','balanced','haiku'],
   ['Implemente um endpoint com testes','balanced','sonnet'],
   ['Refatore a arquitetura distribuida','balanced','opus'],
