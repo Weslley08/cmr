@@ -41,3 +41,18 @@ test('no prompt preserves user model',async()=>{
   const h=harness();
   assert.equal((await step(h,{model:'opus'})).model,'opus');
 });
+
+test('counts requested model separately when provider does not report actual model',async()=>{
+  const h=harness();
+  await h.handlers.get('prompt.submit')(h.$,{text:'Liste os arquivos do src. Não modifique nada.'},h.proceed);
+  async function* next(event){
+    yield {type:'delta',text:'ok'};
+    return {usage:{input_tokens:4,output_tokens:2}};
+  }
+  const stream=h.handlers.get('turn.step')(h.$,{model:'sonnet'},next);
+  while(!(await stream.next()).done){}
+  const stats=(await h.handlers.get('command.run')(h.$,{args:'stats'})).text;
+  assert.match(stats,/requests \(selected aliases\): Haiku 1/);
+  assert.match(stats,/provider-reported: Haiku 0, Sonnet 0, Opus 0/);
+  assert.match(stats,/unverified 1/);
+});
