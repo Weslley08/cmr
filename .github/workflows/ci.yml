@@ -84,3 +84,40 @@ jobs:
         uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  artifact-roundtrip:
+    name: Artifacts / upload v7 + download v8
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create representative release archives
+        shell: bash
+        run: |
+          mkdir -p fixture dist
+          printf 'CMR artifact round-trip\\n' > fixture/cmr
+          tar -C fixture -czf dist/cmr-linux.tar.gz cmr
+          (cd fixture && zip -q ../dist/cmr-windows.zip cmr)
+      - name: Upload Linux archive
+        uses: actions/upload-artifact@v7
+        with:
+          name: cmr-test-linux
+          path: dist/cmr-linux.tar.gz
+          if-no-files-found: error
+      - name: Upload Windows archive
+        uses: actions/upload-artifact@v7
+        with:
+          name: cmr-test-windows
+          path: dist/cmr-windows.zip
+          if-no-files-found: error
+      - name: Download and merge release-style artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: cmr-test-*
+          merge-multiple: true
+          path: downloaded
+      - name: Verify both archives were preserved byte-for-byte
+        shell: bash
+        run: |
+          cmp dist/cmr-linux.tar.gz downloaded/cmr-linux.tar.gz
+          cmp dist/cmr-windows.zip downloaded/cmr-windows.zip
+          tar -tzf downloaded/cmr-linux.tar.gz | grep -qx cmr
+          unzip -Z1 downloaded/cmr-windows.zip | grep -qx cmr
