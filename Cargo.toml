@@ -1,6 +1,6 @@
 [package]
 name = "cmr"
-version = "0.2.1"
+version = "0.2.2"
 edition = "2021"
 description = "Claude Model Router: cross-platform CLI and opt-in Claude Code Mod"
 license = "MIT"
