@@ -15,8 +15,15 @@ const cases=[
   ['Refatore a arquitetura distribuida','economy','sonnet'],
   ['Crie um componente Angular','quality','opus'],
   ['Liste arquivos do src','quality','sonnet'],
-  ['Use o Haiku para localizar arquivos','quality','haiku'],
+  // Free-form prompt mentions do not override /cmr force.\n  ['Use o Haiku para localizar arquivos','quality','sonnet'],
   ['Explique o funcionamento de uma API','balanced','sonnet'],
+  ['Não force Haiku, Sonnet ou Opus.','balanced','sonnet'],
+  ['Nao use Haiku. Use Balanced.','balanced','sonnet'],
+  ['Não force Haiku, Sonnet ou Opus. Investigue arquitetura e segurança.','balanced','opus'],
+  ['Investigue a arquitetura e a segurança. Não force Haiku, Sonnet ou Opus.','economy','opus'],
+  ['Liste arquivos do src. Não force Haiku, Sonnet ou Opus.','balanced','haiku'],
+  ['Use o Opus para localizar arquivos','economy','sonnet'],
+  ['Não force Haiku, Sonnet ou Opus. Mantenha CMR Balanced. Implemente a arquitetura e os testes da galeria 3x2.','balanced','opus'],
 ];
 for(const [prompt,profile,model] of cases)
   test(prompt+' ('+profile+')',()=>assert.equal(chooseModel(prompt,profile).model,model));
