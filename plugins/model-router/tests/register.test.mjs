@@ -56,3 +56,15 @@ test('counts requested model separately when provider does not report actual mod
   assert.match(stats,/provider-reported: Haiku 0, Sonnet 0, Opus 0/);
   assert.match(stats,/unverified 1/);
 });
+
+test('negated model mentions never override balanced routing, but /cmr force does',async()=>{
+  const h=harness();
+  await h.handlers.get('prompt.submit')(h.$,{
+    text:'Investigue a arquitetura e a segurança. Não force Haiku, Sonnet ou Opus.'
+  },h.proceed);
+  assert.equal((await step(h)).model,'opus','architecture and security require Opus in balanced mode');
+  await h.handlers.get('command.run')(h.$,{args:'force sonnet'});
+  assert.equal((await step(h)).model,'sonnet','an explicit /cmr force still wins');
+  await h.handlers.get('command.run')(h.$,{args:'force none'});
+  assert.equal((await step(h)).model,'opus','force none restores automatic selection');
+});

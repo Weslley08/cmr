@@ -18,9 +18,9 @@ export function chooseModel(prompt, profile = 'balanced') {
   // Other positive write verbs ("implemente", "refatore") still count as changes.
   const intent = s.replace(/\b(?:nao|nunca|sem|never|do not|don't)\s+(?:modif\w*|alter\w*|edit\w*|chang\w*|writ\w*|escrev\w*|creat\w*|cri\w*)\b/g, '');
   const p = ['economy', 'balanced', 'quality'].includes(profile) ? profile : 'balanced';
-  // Explicit user override beats heuristics and can be reset with /cmr force none.
-  const explicit = s.match(/\b(?:use|utilize|usar|modelo|model|forcar|force|rode com|execute com)\s+(?:o\s+)?(haiku|sonnet|opus)\b/);
-  if (explicit) return {model:explicit[1],tier:'manual',reason:'explicit model request'};
+  // A prompt can quote instructions, contain negations ("Nao force Haiku"), or
+  // discuss model names without requesting an override. Never infer a manual
+  // override from free-form prompt text. /cmr force is handled by register.mjs.
   if (dangerous.test(s)) return {model:'opus',tier:'critical',reason:'high-risk task'};
   if (complex.test(s) || (broad.test(s) && changes.test(s))) {
     return {model:p==='economy'?'sonnet':'opus',tier:'complex',reason:'architecture or broad change'};
