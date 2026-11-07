@@ -15,7 +15,8 @@ const cases=[
   ['Refatore a arquitetura distribuida','economy','sonnet'],
   ['Crie um componente Angular','quality','opus'],
   ['Liste arquivos do src','quality','sonnet'],
-  // Free-form prompt mentions do not override /cmr force.\n  ['Use o Haiku para localizar arquivos','quality','sonnet'],
+  // Free-form prompt mentions do not override /cmr force.
+  ['Use o Haiku para localizar arquivos','quality','sonnet'],
   ['Explique o funcionamento de uma API','balanced','sonnet'],
   ['Não force Haiku, Sonnet ou Opus.','balanced','sonnet'],
   ['Nao use Haiku. Use Balanced.','balanced','sonnet'],
