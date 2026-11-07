@@ -74,7 +74,12 @@ jobs:
     name: Secret scanning
     runs-on: ubuntu-latest
     steps:
+      # Gitleaks compares commits on pull_request; a shallow clone can omit
+      # their parents and cause 'failed to scan Git repository: stderr is not empty'.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
       - name: Gitleaks
         uses: gitleaks/gitleaks-action@v2
         env:
