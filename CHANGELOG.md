@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## 0.2.2 — Unreleased (source)
+
+### Fixed
+- Prevent negated or quoted model names in prompts from acting as explicit overrides; only `/cmr force` requests a manual model.
+- Fix Gitleaks CI scans on pull requests by checking out the required commit history.
+- Update GitHub Actions used in CI and release workflows to Node 24-capable major versions and verify artifact upload/download round trips.
+
+### Changed
+- Version metadata synchronized for Rust CLI and Claude Code Mod to allow updating installed plugins without publishing a binary release.
+
 ## 0.2.1 — Unreleased (source)
 
 ### Fixed
