@@ -18,7 +18,7 @@ jobs:
     name: Rust / format lint test build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt, clippy
@@ -35,7 +35,7 @@ jobs:
     name: Mod / policy, hooks and manifests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -61,7 +61,7 @@ jobs:
           - { os: macos-15-intel, target: x86_64-apple-darwin }
           - { os: macos-15, target: aarch64-apple-darwin }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
@@ -76,7 +76,7 @@ jobs:
     steps:
       # Gitleaks compares commits on pull_request; a shallow clone can omit
       # their parents and cause 'failed to scan Git repository: stderr is not empty'.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
