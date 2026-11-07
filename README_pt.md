@@ -6,7 +6,7 @@
 
 [English](README.md) · [Instalação](INSTALL.md) · [Arquitetura](docs/contributing/ARCHITECTURE.md)
 
-> **Código experimental 0.2.1:** o Mod utiliza a API oficial `turn.step` para modificar o modelo das requisições principais do Claude Code. Ainda precisamos verificar a integração em uma sessão real; não há publicação WinGet/Homebrew.
+> **Código experimental 0.2.2:** o Mod utiliza a API oficial `turn.step` para modificar o modelo das requisições principais do Claude Code. Ainda precisamos verificar a integração em uma sessão real; não há publicação WinGet/Homebrew.
 
 ## Como funciona
 
